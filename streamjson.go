@@ -28,11 +28,28 @@ func (s *StreamJson) AddMonitor(pattern string, cb func(any, error)) {
 
 func (s *StreamJson) ProcessStream(r io.Reader) error {
 	s.dec = json.NewDecoder(r)
+
+	var f json.Delim
+	var ok bool
 	keys := []string{}
-	err := s.process(&keys)
+	firstTok, err := s.dec.Token()
+	if err != nil {
+		if err == io.EOF {
+			goto finally
+		}
+		return err
+	}
+	f, ok = firstTok.(json.Delim)
+	if ok && f == '{' {
+		err = s.process(&keys)
+	}
+	if ok && f == '[' {
+		err = s.array(&keys, "")
+	}
 	if err != nil {
 		return err
 	}
+finally:
 	for pattern, ok := range s.called {
 		if !ok {
 			s.cbs[pattern](nil, fmt.Errorf("not find pattern: "+pattern))
@@ -98,7 +115,11 @@ func (s *StreamJson) process(keys *[]string) error {
 }
 
 func (s *StreamJson) array(keys *[]string, key string) error {
-	key = key + ".*"
+	if key != "" {
+		key = key + ".*"
+	} else {
+		key = "*"
+	}
 
 	for {
 		tok, err := s.dec.Token()
