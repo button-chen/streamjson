@@ -8,15 +8,17 @@ import (
 )
 
 type StreamJson struct {
-	cbs    map[string]func(any, error)
-	called map[string]bool
-	dec    *json.Decoder
+	cbs      map[string]func(any, error)
+	called   map[string]bool
+	dec      *json.Decoder
+	rangeFun func(string, any)
 }
 
 func NewStreamJson() *StreamJson {
 	s := &StreamJson{
-		cbs:    make(map[string]func(any, error)),
-		called: make(map[string]bool),
+		cbs:      make(map[string]func(any, error)),
+		called:   make(map[string]bool),
+		rangeFun: func(string, any) {},
 	}
 	return s
 }
@@ -24,6 +26,10 @@ func NewStreamJson() *StreamJson {
 func (s *StreamJson) AddMonitor(pattern string, cb func(any, error)) {
 	s.cbs[pattern] = cb
 	s.called[pattern] = false
+}
+
+func (s *StreamJson) MonitorAll(cb func(string, any)) {
+	s.rangeFun = cb
 }
 
 func (s *StreamJson) ProcessStream(r io.Reader) error {
@@ -105,6 +111,7 @@ func (s *StreamJson) process(keys *[]string) error {
 			key = ""
 			continue
 		}
+		s.rangeFun(newKey, tok)
 		if cb, ok := s.cbs[newKey]; ok {
 			cb(tok, nil)
 			s.called[newKey] = true
@@ -145,7 +152,7 @@ func (s *StreamJson) array(keys *[]string, key string) error {
 			s.process(keys)
 			continue
 		}
-
+		s.rangeFun(key, tok)
 		if cb, ok := s.cbs[key]; ok {
 			cb(tok, nil)
 			s.called[key] = true
