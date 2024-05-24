@@ -60,3 +60,26 @@ output：
 - timestamp: 1492    name: <nil>   error: not find pattern: name
 
 ```
+
+或者使用MonitorAll：
+
+```go
+sj.MonitorAll(func(key string, a any) {
+	fmt.Printf("timestamp: %v key: %v  val: %v\n", time.Since(start).Milliseconds(), key, a)
+})
+
+output:
+- timestamp: 204   key: aa.a    val: 1
+- timestamp: 388   key: aa.b.c  val: 2
+- timestamp: 508   key: aa.b.d  val: 5
+- timestamp: 786   key: bb.*.a  val: 123
+- timestamp: 960   key: bb.*.a  val: 456
+- timestamp: 1190  key: cc.*.*  val: e
+- timestamp: 1258  key: cc.*.*  val: f
+- timestamp: 1357  key: cc.*.*  val: g
+- timestamp: 1427  key: cc.*.*  val: h
+- timestamp: 1617  key: ee      val: 999
+```
+
+
+
