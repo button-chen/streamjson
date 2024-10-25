@@ -1,5 +1,5 @@
 # streamjson
-实时解析json流
+Parse json streams in real time
 
 ## Example
 
@@ -11,7 +11,7 @@ func TestStreamJson(t *testing.T) {
 	js := `{"aa":{"a":1,"b":{"c":2,"d":5}},"bb":[{"a":123},{"a":456}],"cc":[["e","f"],["g","h"]], "ee":999}`
 
 	go func() {
-		// 模拟流式发送json数据
+		// Simulates streaming json data
 		now := time.Now()
 		for i := 0; i < len(js); i++ {
 			cw.Write(append([]byte(nil), js[i]))
@@ -61,7 +61,7 @@ output：
 
 ```
 
-或者使用MonitorAll：
+Or use MonitorAll：
 
 ```go
 sj.MonitorAll(func(key string, a any) {
